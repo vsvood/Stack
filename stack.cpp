@@ -10,39 +10,41 @@
 
 #include "alchemy_shop.h"
 
-CustomStatus Stack::Ctor(Stack *self, size_t capacity) {
-  if ((self == nullptr) || (capacity == 0)) {
+CustomStatus Stack::Ctor(Stack* self, size_t capacity, size_t elem_size) {
+  if ((self == nullptr) || (capacity == 0) || (elem_size == 0)) {
     return CustomStatus::kWrongInputParams;
   }
 
-  int *tmp = (int *)calloc(capacity, sizeof(int));
+  char* tmp = (char*)calloc(capacity * elem_size, sizeof(char));
   if (tmp == nullptr) {
     return CustomStatus::kRuntimeError;
   }
   self->data = tmp;
+  self->elem_size = elem_size;
   self->capacity = capacity;
   self->size = 0;
 
   return CustomStatus::kOk;
 }
 
-CustomStatus Stack::Dtor(Stack *self) {
+CustomStatus Stack::Dtor(Stack* self) {
   if (self == nullptr) {
     return CustomStatus::kWrongInputParams;
   }
 
-  memset(self->data, (int)DataPoison::kFreed, sizeof(int) * self->capacity);
+  memset(self->data, (int)DataPoison::kFreed, self->elem_size * self->capacity);
   free(self->data);
-  self->data = (int *)PtrPoison::kFreed;
+  self->data = (char*)PtrPoison::kFreed;
 
   self->size = (size_t)DataPoison::kInvalidSize;
   self->capacity = (size_t)DataPoison::kInvalidSize;
+  self->elem_size = (size_t)DataPoison::kInvalidSize;
 
   return CustomStatus::kOk;
 }
 
-CustomStatus Stack::Push(Stack *self, int value) {
-  if (self == nullptr) {
+CustomStatus Stack::Push(Stack* self, void* val_ptr) {
+  if ((self == nullptr) || (val_ptr == nullptr)) {
     return CustomStatus::kWrongInputParams;
   }
 
@@ -52,25 +54,25 @@ CustomStatus Stack::Push(Stack *self, int value) {
     --self->size;
     return status;
   }
-  self->data[self->size-1] = value;
+  memccpy(&self->data[(self->size-1)*self->elem_size], val_ptr, 1, self->elem_size);
 
   return CustomStatus::kOk;
 }
 
-CustomStatus Stack::Top(Stack *self, int *value) {
-  if ((self == nullptr) || (value == nullptr)) {
+CustomStatus Stack::Top(Stack* self, void* val_ptr) {
+  if ((self == nullptr) || (val_ptr == nullptr)) {
     return CustomStatus::kWrongInputParams;
   }
   if (self->size == 0) {
     return CustomStatus::kRuntimeError;
   }
 
-  *value = self->data[self->size - 1];
+  memccpy(val_ptr, &self->data[(self->size - 1)*self->elem_size], 1, self->elem_size);
 
   return CustomStatus::kOk;
 }
 
-CustomStatus Stack::Pop(Stack *self) {
+CustomStatus Stack::Pop(Stack* self) {
   if (self == nullptr) {
     return CustomStatus::kWrongInputParams;
   }
@@ -79,19 +81,17 @@ CustomStatus Stack::Pop(Stack *self) {
   }
 
   --self->size;
-  int tmp = self->data[self->size];
-  self->data[self->size] = (int)DataPoison::kDeleted;
   CustomStatus status = SmartRealloc(self);
   if (status != CustomStatus::kOk) {
-    self->data[self->size] = tmp;
     ++self->size;
     return status;
   }
+  memset(&self->data[self->size * self->elem_size], (int)DataPoison::kDeleted, self->elem_size);
 
   return CustomStatus::kOk;
 }
 
-CustomStatus Stack::SmartRealloc(Stack *self) {
+CustomStatus Stack::SmartRealloc(Stack* self) {
   if (self == nullptr) {
     return CustomStatus::kWrongInputParams;
   }
@@ -115,7 +115,7 @@ CustomStatus Stack::SmartRealloc(Stack *self) {
     return CustomStatus::kOk;
   }
 
-  int *tmp = (int *)realloc(self->data, new_capacity * sizeof(int));
+  char* tmp = (char*)realloc(self->data, new_capacity * self->elem_size);
   if (tmp == nullptr) {
     return CustomStatus::kRuntimeError;
   }

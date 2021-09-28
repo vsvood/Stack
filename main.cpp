@@ -1,18 +1,36 @@
 #include <cstdio>
+#include <cstdint>
 
 #include "stack.h"
 
 int main() {
   Stack stack = {};
-  Stack::Ctor(&stack, 1);
-  Stack::Push(&stack, 1);
-
-  int n;
-  Stack::Top(&stack, &n);
-  printf("%d", n);
+  Stack::Ctor(&stack, 1, sizeof(int));
+  int val = 200003;
+  Stack::Push(&stack, &val);
+  val = 2;
+  Stack::Push(&stack, &val);
+  val = 3;
+  Stack::Push(&stack, &val);
+  val = 4;
+  Stack::Push(&stack, &val);
+  val = 5;
+  Stack::Push(&stack, &val);
+  Stack::Top(&stack, &val);
   Stack::Pop(&stack);
-  Stack::Push(&stack, 1);
-  printf("%zu %zu", stack.capacity, stack.size);
+  printf("%d\n", val);
+  Stack::Top(&stack, &val);
+  Stack::Pop(&stack);
+  printf("%d\n", val);
+  Stack::Top(&stack, &val);
+  Stack::Pop(&stack);
+  printf("%d\n", val);
+  Stack::Top(&stack, &val);
+  Stack::Pop(&stack);
+  printf("%d\n", val);
+  Stack::Top(&stack, &val);
+  Stack::Pop(&stack);
+  printf("%d\n", val);
   Stack::Dtor(&stack);
 
   return 0;

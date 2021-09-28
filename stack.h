@@ -10,13 +10,14 @@
 #include "custom_status_lib.h"
 
 struct Stack {
-  int* data;
+  char* data;
+  size_t elem_size;
   size_t size;
   size_t capacity;
-  static CustomStatus Ctor(Stack* self, size_t capacity);
+  static CustomStatus Ctor(Stack *self, size_t capacity, size_t elem_size);
   static CustomStatus Dtor(Stack* self);
-  static CustomStatus Push(Stack* self, int value);
-  static CustomStatus Top(Stack* self, int* value);
+  static CustomStatus Push(Stack* self, void* val_ptr);
+  static CustomStatus Top(Stack* self, void* val_ptr);
   static CustomStatus Pop(Stack* self);
   static CustomStatus SmartRealloc(Stack* self);
 };
