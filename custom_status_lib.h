@@ -7,9 +7,15 @@
 
 enum class CustomStatus {
   kOk,
-  kWrongInputParams,
-  kWrongOutputParams,
-  kRuntimeError
+  kAllocError,
+  kBadStackPtr,
+  kBadSelfElemSize,
+  kBadSelfStackSize,
+  kBadSelfStackCapacity,
+  kBadSelfDataPtr,
+  kBadPassedElemSize,
+  kBadPassedStackCapacity,
+  kBadValuePtr
 };
 
 extern const char *kCustomStatusDescription[];

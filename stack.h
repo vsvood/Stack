@@ -19,7 +19,8 @@ struct Stack {
   static CustomStatus Push(Stack* self, void* val_ptr);
   static CustomStatus Top(Stack* self, void* val_ptr);
   static CustomStatus Pop(Stack* self);
-  static CustomStatus SmartRealloc(Stack* self);
+  static CustomStatus SmartRealloc(Stack *self, size_t new_size, size_t preferred_capacity = 0);
+  static CustomStatus Verify(Stack* self);
 };
 
 #endif  // STACK_STACK_H

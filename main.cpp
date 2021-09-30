@@ -5,7 +5,7 @@
 
 int main() {
   Stack stack = {};
-  Stack::Ctor(&stack, 1, sizeof(int));
+  Stack::Ctor(&stack, 0, sizeof(int));
   int val = 200003;
   Stack::Push(&stack, &val);
   val = 2;
