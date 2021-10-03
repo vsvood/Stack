@@ -8,8 +8,8 @@
 #include <cstdint>
 
 enum class DataPoison : size_t{
-  kFreed = 0xf0f0f0f0,
-  kDeleted = 0xfdfdfdfd,
+  kFreed = 0xf0,
+  kDeleted = 0xfd,
   kInvalidSize = SIZE_MAX
 };
 

@@ -7,4 +7,4 @@ set(CXX_COVERAGE_COMPILE_FLAGS "-D NDEBUG -g -std=c++14 -Werror -fmax-errors=1 -
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_COVERAGE_COMPILE_FLAGS}" )
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(Stack main.cpp stack.cpp)
+add_executable(Stack main.cpp stack.cpp stack_status.cpp)
