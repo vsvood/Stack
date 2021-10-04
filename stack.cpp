@@ -10,16 +10,31 @@
 
 #include "alchemy_shop.h"
 
-StackStatus Stack::Ctor(Stack *self, size_t capacity, size_t elem_size, ElemInterface interface) {
-  StackStatus verification_status = Verify(self);
-  if (verification_status != StackStatus::kOk) {
-    return verification_status;
+StackStatus Stack::Ctor(Stack *self, size_t elem_size, ExtraInfo extra_info, size_t capacity, ElemInterface interface) {
+  StackStatus status = Verify(self);
+  if ((status & StackStatus::kError) != StackStatus::kOk) {
+    return status;
   }
   if (capacity == (size_t) DataPoison::kInvalidSize) {
     return StackStatus::kBadPassedStackCapacity;
   }
   if (elem_size == 0 || elem_size == (size_t)DataPoison::kInvalidSize) {
     return StackStatus::kBadPassedElemSize;
+  }
+  if (extra_info.var_name != nullptr) {
+    self->name = (char*) calloc(strlen(extra_info.var_name) + 1, 1);
+    strcpy(self->name, extra_info.var_name);
+
+    self->type = (char*) calloc(strlen(extra_info.type_name) + 1, 1);
+    strcpy(self->type, extra_info.type_name);
+
+    self->ctor_at_func = (char*) calloc(strlen(extra_info.func_name) + 1, 1);
+    strcpy(self->ctor_at_func, extra_info.func_name);
+
+    self->ctor_in_file = (char*) calloc(strlen(extra_info.file_name) + 1, 1);
+    strcpy(self->ctor_in_file, extra_info.file_name);
+
+    self->ctor_on_line = extra_info.line;
   }
 
   self->elem_interface = interface;
@@ -28,7 +43,7 @@ StackStatus Stack::Ctor(Stack *self, size_t capacity, size_t elem_size, ElemInte
   self->capacity = capacity;
   self->size = 0;
 
-  StackStatus status = SmartRealloc(self, self->size, capacity);
+  status = SmartRealloc(self, self->size, capacity);
   if (status != StackStatus::kOk) {
     return status;
   }
@@ -42,9 +57,9 @@ StackStatus Stack::Ctor(Stack *self, size_t capacity, size_t elem_size, ElemInte
 
 StackStatus Stack::Dtor(Stack* self) {
 //  mb input Stack** and poison?
-  StackStatus verification_status = Verify(self);
-  if (verification_status != StackStatus::kOk) {
-    return verification_status;
+  StackStatus status = Verify(self);
+  if ((status & StackStatus::kError) != StackStatus::kOk) {
+    return status;
   }
 
   if (self->elem_interface.Dtor != nullptr) {
@@ -61,6 +76,26 @@ StackStatus Stack::Dtor(Stack* self) {
   self->size = (size_t)DataPoison::kInvalidSize;
   self->capacity = (size_t)DataPoison::kInvalidSize;
   self->elem_size = (size_t)DataPoison::kInvalidSize;
+
+  if ((status & StackStatus::kWarnSelfCtorName) == StackStatus::kOk) {
+    free(self->name);
+    self->name = (char *) PtrPoison::kFreed;
+  }
+  if ((status & StackStatus::kWarnSelfCtorType) == StackStatus::kOk) {
+    free(self->type);
+    self->type = (char *) PtrPoison::kFreed;
+  }
+  if ((status & StackStatus::kWarnSelfCtorFunc) == StackStatus::kOk) {
+    free(self->ctor_at_func);
+    self->ctor_at_func = (char *) PtrPoison::kFreed;
+  }
+  if ((status & StackStatus::kWarnSelfCtorFile) == StackStatus::kOk) {
+    free(self->ctor_in_file);
+    self->ctor_in_file = (char *) PtrPoison::kFreed;
+  }
+  if ((status & StackStatus::kWarnSelfCtorLine) == StackStatus::kOk) {
+    self->ctor_on_line = (int) DataPoison::kFreed;
+  }
 
   return StackStatus::kOk;
 }
@@ -175,45 +210,85 @@ StackStatus Stack::SmartRealloc(Stack* self, size_t new_size, size_t preferred_c
 }
 
 StackStatus Stack::Verify(const Stack *self) {
+  if (self->is_verifying)
+    return StackStatus::kOk;
+  self->is_verifying = true;
   if (self == nullptr || self == (Stack*)PtrPoison::kFreed) {
     return StackStatus::kBadSelfPtr;
   }
   StackStatus status = StackStatus::kOk;
-  if (self->capacity == (size_t)DataPoison::kInvalidSize) {
-    status |= StackStatus::kBadSelfCapacity;
-  }
-  if (self->capacity < self->size ||
-      self->size == (size_t)DataPoison::kInvalidSize) {
-    status |= StackStatus::kBadSelfSize;
-  }
-  if ((self->capacity != 0 && self->elem_size == 0) ||
-      self->elem_size == (size_t)DataPoison::kInvalidSize) {
-    status |= StackStatus::kBadSelfElemSize;
-  }
-  if (self->capacity != 0 &&
-      (self->data == nullptr || self->data == (char*)PtrPoison::kFreed)) {
-    status |= StackStatus::kBadSelfDataPtr;
-  }
-  if (status != StackStatus::kOk) return status;
 
-  if (self->elem_interface.Verify != nullptr) {
+  if (self->name == nullptr || self->name == (char*)PtrPoison::kFreed)
+    status |= StackStatus::kWarnSelfCtorName;
+  if (self->type == nullptr || self->type == (char*)PtrPoison::kFreed)
+    status |= StackStatus::kWarnSelfCtorType;
+  if (self->ctor_at_func == nullptr ||
+      self->ctor_at_func == (char*)PtrPoison::kFreed)
+    status |= StackStatus::kWarnSelfCtorFunc;
+  if (self->ctor_in_file == nullptr ||
+      self->ctor_in_file == (char*)PtrPoison::kFreed)
+    status |= StackStatus::kWarnSelfCtorFile;
+  if (self->ctor_on_line == 0)
+    status |= StackStatus::kWarnSelfCtorLine;
+
+  if (self->capacity == (size_t)DataPoison::kInvalidSize)
+    status |= StackStatus::kBadSelfCapacity;
+  if (self->capacity < self->size ||
+      self->size == (size_t)DataPoison::kInvalidSize)
+    status |= StackStatus::kBadSelfSize;
+  if ((self->capacity != 0 && self->elem_size == 0) ||
+      self->elem_size == (size_t)DataPoison::kInvalidSize)
+    status |= StackStatus::kBadSelfElemSize;
+  if (self->capacity != 0 &&
+      (self->data == nullptr || self->data == (char*)PtrPoison::kFreed))
+    status |= StackStatus::kBadSelfDataPtr;
+  if ((status & StackStatus::kSelfError) != StackStatus::kOk) {
+    self->is_verifying = false;
+    return status;
+  }
+
+  if (self->elem_interface.Verify != nullptr)
     for (size_t i = 0; i < self->size; ++i) {
       ElemStatus elem_status = self->elem_interface.Verify(&self->data[i*self->elem_size]);
-      if (elem_status != ElemStatus::kOk) {
-        return StackStatus::kBadElem;
-      }
+      if (elem_status == ElemStatus::kCorrupted)
+        status |= StackStatus::kBadElem;
+      else if (elem_status == ElemStatus::kWarning)
+        status |= StackStatus::kWarnElemVerify;
     }
-  }
-  return StackStatus::kOk;
+  self->is_verifying = false;
+  return status;
 }
 
-StackStatus Stack::Dump(const Stack *self, const char *indent) {
+StackStatus Stack::Dump(const Stack *self, ExtraInfo extra_info, const char *indent) {
   StackStatus status = Stack::Verify(self);
-  printf("%s-stack<> [%p] %s\n", indent, self,
-         ((status & StackStatus::kBadSelfPtr) == StackStatus::kOk) ? "ok" : "ERROR");
+  if (self->is_dumping) {
+    printf("%s cycles to -stack<%s> [%p]", indent,
+           ((status & StackStatus::kWarnSelfCtorType) == StackStatus::kOk)
+           ? self->type : "", self);
+    return StackStatus::kOk;
+  }
+  self->is_dumping = true;
+  printf("%s-stack<%s> [%p] %s", indent,
+         ((status & StackStatus::kWarnSelfCtorType) == StackStatus::kOk)
+         ? self->type : "", self,
+         ((status & StackStatus::kBadSelfPtr) == StackStatus::kOk)
+         ? "ok" : "ERROR");
+  if (extra_info.var_name != nullptr) {
+    printf(" \"%s\" at %s at %s(%d)",
+           extra_info.var_name, extra_info.func_name,
+           extra_info.file_name, extra_info.line);
+  }
+  printf("\n");
   fflush(stdout);
+
   if ((status & StackStatus::kBadSelfPtr) == StackStatus::kOk)
   {
+    if ((status & StackStatus::kWarnSelfCtorData) == StackStatus::kOk) {
+      printf("%s  Ctor as \"%s\" at %s in %s(%d)\n",
+             indent, self->name, self->ctor_at_func,
+             self->ctor_in_file, self->ctor_on_line);
+      fflush(stdout);
+    }
     printf("%s  capacity  - %zu %s", indent, self->capacity,
            ((status & StackStatus::kBadSelfCapacity) != StackStatus::kOk) ? "ERROR\n" : "ok\n");
     fflush(stdout);
@@ -228,7 +303,7 @@ StackStatus Stack::Dump(const Stack *self, const char *indent) {
     fflush(stdout);
   }
   if (self->size != 0) {
-    if ((status & StackStatus::kBadSelfDataPtr) == StackStatus::kOk) {
+    if ((status & StackStatus::kSelfError) == StackStatus::kOk) {
       printf("%s  {\n", indent);
 
       char *poisoned = (char *) calloc(1, self->elem_size+1);
@@ -305,5 +380,7 @@ StackStatus Stack::Dump(const Stack *self, const char *indent) {
     }
   }
   printf("\n");
+
+  self->is_dumping = false;
   return status;
 }

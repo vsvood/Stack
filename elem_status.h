@@ -7,6 +7,7 @@
 
 enum class ElemStatus {
     kOk,
+    kWarning,
     kCorrupted
 };
 

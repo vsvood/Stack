@@ -7,7 +7,9 @@
 
 enum class StackStatus : unsigned {
   kOk = 0,
-  kStackError = 0xff000000,
+
+  kError = 0xffffff00,
+  kSelfError = 0xff000000,
   kBadSelfPtr = 0x80000000,
   kBadSelfCapacity = 0x40000000,
   kBadSelfSize = 0x20000000,
@@ -16,18 +18,28 @@ enum class StackStatus : unsigned {
 
   kElemError = 0x00f00000,
   kBadElem = 0x00800000,
+  kBadPoison = 0x00400000,
 
-  kElemWarn = 0x000f0000,
-  kElemPoisonDelete = 0x00080000,
-  kElemPoisonFreed = 0x00040000,
+  kParamError = 0x000f0000,
+  kBadPassedElemSize = 0x00080000,
+  kBadPassedStackCapacity = 0x00040000,
+  kBadPassedValuePtr = 0x00200000,
 
-  kParamError = 0x0000ff00,
-  kBadPassedElemSize = 0x00008000,
-  kBadPassedStackCapacity = 0x00004000,
-  kBadPassedValuePtr = 0x00002000,
+  kRuntimeError = 0x0000ff00,
+  kAllocError = 0x00008000,
 
-  kRuntimeError = 0x000000ff,
-  kAllocError = 0x00000080,
+  kSelfWarn = 0x000000ff,
+  kWarnSelfCtorData = 0x000000f8,
+  kWarnSelfCtorName = 0x00000080,
+  kWarnSelfCtorType = 0x00000040,
+  kWarnSelfCtorFunc = 0x00000020,
+  kWarnSelfCtorFile = 0x00000010,
+  kWarnSelfCtorLine = 0x00000008,
+
+  kElemWarn = 0x00000007,
+  kWarnElemPoisonDelete = 0x00000004,
+  kWarnElemPoisonFreed = 0x00000002,
+  kWarnElemVerify = 0x00000001,
 
   kUnknown = 0xffffffff
 };
@@ -39,7 +51,5 @@ StackStatus operator |= (StackStatus& l, StackStatus r);
 StackStatus operator & (StackStatus l, StackStatus r);
 
 StackStatus operator &= (StackStatus& l, StackStatus r);
-
-extern const char *kCustomStatusDescription[];
 
 #endif  // STACK_STACK_STATUS_H
