@@ -1,57 +1,70 @@
 #include <cstdio>
+#include <cstring>
 
 #include "stack.h"
 
+ElemStatus Verify(const void* self);
+
+ElemStatus Dump(const void* self, const char* indent);
+
+ElemStatus Verify(const void* self) {
+  Stack **ptr = new Stack*;
+  memccpy(ptr, self, 1, sizeof(Stack*));
+  StackStatus status = Stack::Verify(*ptr);
+  delete ptr;
+  if ((status & StackStatus::kError) != StackStatus::kOk)
+    return ElemStatus::kCorrupted;
+  if ((status & StackStatus::kWarning) != StackStatus::kOk)
+    return ElemStatus::kWarning;
+  return ElemStatus::kOk;
+}
+
+ElemStatus Dump(const void* self, const char* indent) {
+  Stack **ptr = new Stack*;
+  memccpy(ptr, self, 1, sizeof(Stack*));
+  StackStatus status = Stack::Dump(*ptr, {}, indent);
+  delete ptr;
+  if ((status & StackStatus::kError) != StackStatus::kOk)
+    return ElemStatus::kCorrupted;
+  if ((status & StackStatus::kWarning) != StackStatus::kOk)
+    return ElemStatus::kWarning;
+  return ElemStatus::kOk;
+}
+
 int main() {
-  Stack stack = {};
-  STACK_DUMP(stack);
-  STACK_CTOR(stack, int);
-  STACK_DUMP(stack);
-  int val = 200003;
-  Stack::Push(&stack, &val);
-  STACK_DUMP(stack);
-  val = 2;
-  Stack::Push(&stack, &val);
-  STACK_DUMP(stack);
-  val = static_cast<int>(0xf0f0f0f0);
-  Stack::Push(&stack, &val);
-  STACK_DUMP(stack);
-  val = 4;
-  Stack::Push(&stack, &val);
-  STACK_DUMP(stack);
-  val = 5;
-  Stack::Push(&stack, &val);
-  STACK_DUMP(stack);
+  Stack stack1 = {};
+  Stack stack2 = {};
+  Stack* stack1_ptr = nullptr;
+  Stack* stack2_ptr = nullptr;
 
-  Stack::Top(&stack, &val);
-  Stack::Pop(&stack);
-  printf("%d\n", val);
+  STACK_DUMP(stack1);
+  STACK_CTOR(stack1, Stack*);
+  stack1.elem_interface = {
+    nullptr,
+    nullptr,
+    Dump,
+    Verify
+  };
+  stack1_ptr = &stack1;
 
-  STACK_DUMP(stack);
+  STACK_DUMP(stack2);
+  STACK_CTOR(stack2, Stack*);
+  stack2.elem_interface = {
+    nullptr,
+    nullptr,
+    Dump,
+    Verify
+  };
+  stack2_ptr = &stack2;
 
-  Stack::Top(&stack, &val);
-  Stack::Pop(&stack);
-  printf("%d\n", val);
+  Stack::Push(&stack1, &stack2_ptr);
+  Stack::Push(&stack2, &stack1_ptr);
 
-  STACK_DUMP(stack);
+  STACK_DUMP(stack1);
 
-  Stack::Top(&stack, &val);
-  Stack::Pop(&stack);
-  printf("%d\n", val);
-  Stack::Top(&stack, &val);
-  Stack::Pop(&stack);
-  printf("%d\n", val);
-  Stack::Top(&stack, &val);
-  Stack::Pop(&stack);
-  printf("%d\n", val);
-
-  STACK_DUMP(stack);
-
-  Stack::Dtor(&stack);
-  STACK_DUMP(stack);
-
-  Stack::Dtor(&stack);
-  STACK_DUMP(stack);
+  Stack::Dtor(&stack1);
+  STACK_DUMP(stack2);
+  Stack::Dtor(&stack2);
 
   return 0;
 }

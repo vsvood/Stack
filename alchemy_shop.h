@@ -10,7 +10,8 @@
 enum class DataPoison : size_t{
   kFreed = 0xf0,
   kDeleted = 0xfd,
-  kInvalidSize = SIZE_MAX
+  kInvalidSize = SIZE_MAX,
+  kCanary = 0xDeadDeadDeadDead
 };
 
 enum class PtrPoison {

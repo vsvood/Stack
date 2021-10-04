@@ -58,7 +58,7 @@ StackStatus Stack::Ctor(Stack *self, size_t elem_size, ExtraInfo extra_info, siz
 StackStatus Stack::Dtor(Stack* self) {
 //  mb input Stack** and poison?
   StackStatus status = Verify(self);
-  if ((status & StackStatus::kError) != StackStatus::kOk) {
+  if ((status & StackStatus::kSelfError) != StackStatus::kOk) {
     return status;
   }
 
@@ -242,6 +242,13 @@ StackStatus Stack::Verify(const Stack *self) {
   if (self->capacity != 0 &&
       (self->data == nullptr || self->data == (char*)PtrPoison::kFreed))
     status |= StackStatus::kBadSelfDataPtr;
+
+  if (self->left_canary != (size_t)DataPoison::kCanary)
+    status |= StackStatus::kBadSelfLeftCanary;
+  if (self->right_canary != (size_t)DataPoison::kCanary)
+    status |= StackStatus::kBadSelfRightCanary;
+
+
   if ((status & StackStatus::kSelfError) != StackStatus::kOk) {
     self->is_verifying = false;
     return status;
@@ -262,7 +269,7 @@ StackStatus Stack::Verify(const Stack *self) {
 StackStatus Stack::Dump(const Stack *self, ExtraInfo extra_info, const char *indent) {
   StackStatus status = Stack::Verify(self);
   if (self->is_dumping) {
-    printf("%s cycles to -stack<%s> [%p]", indent,
+    printf("%s cycles to -stack<%s> [%p]\n", indent,
            ((status & StackStatus::kWarnSelfCtorType) == StackStatus::kOk)
            ? self->type : "", self);
     return StackStatus::kOk;
@@ -311,6 +318,10 @@ StackStatus Stack::Dump(const Stack *self, ExtraInfo extra_info, const char *ind
       char *elem_value = (char *) calloc(1, self->elem_size + 1);
       poisoned[self->elem_size] = '\0';
 
+      char *new_indent = (char *) calloc(1, strlen(indent) + 7);
+      memccpy(new_indent, indent, 1, strlen(indent));
+      new_indent = strcat(new_indent, "      ");
+
       for (size_t i = 0; i < self->size; ++i) {
         printf("%s   *[%zu] = ", indent, i);
 
@@ -339,15 +350,15 @@ StackStatus Stack::Dump(const Stack *self, ExtraInfo extra_info, const char *ind
           else
             printf("  ok\n");
           if (self->elem_interface.Dump != nullptr) {
-            char *new_indent = (char *) calloc(1, strlen(indent) + 6);
-            memccpy(new_indent, indent, 1, strlen(indent));
-            self->elem_interface.Dump(&self->data[i], strcat(new_indent, "      "));
+            self->elem_interface.Dump(&self->data[i], new_indent);
+
           }
           fflush(stdout);
         } else {
           printf("\n");
         }
       }
+      free(new_indent);
       for (size_t i = self->size; i < self->capacity; ++i) {
         printf("%s    [%zu] = ", indent, i);
 

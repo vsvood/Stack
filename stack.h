@@ -9,6 +9,7 @@
 
 #include "stack_status.h"
 #include "elem_interface.h"
+#include "alchemy_shop.h"
 
 struct ExtraInfo {
     const char* var_name;
@@ -19,6 +20,7 @@ struct ExtraInfo {
 };
 
 struct Stack {
+  size_t left_canary = (size_t)DataPoison::kCanary;
   char* name;
   char* type;
   char* ctor_at_func;
@@ -32,6 +34,7 @@ struct Stack {
 
   mutable bool is_dumping = false;
   mutable bool is_verifying = false;
+  size_t right_canary = (size_t)DataPoison::kCanary;
 
   static StackStatus
   Ctor(Stack *self, size_t elem_size, ExtraInfo extra_info = {}, size_t capacity = 0, ElemInterface interface = {});

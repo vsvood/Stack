@@ -15,6 +15,8 @@ enum class StackStatus : unsigned {
   kBadSelfSize = 0x20000000,
   kBadSelfElemSize = 0x10000000,
   kBadSelfDataPtr = 0x08000000,
+  kBadSelfLeftCanary = 0x04000000,
+  kBadSelfRightCanary = 0x02000000,
 
   kElemError = 0x00f00000,
   kBadElem = 0x00800000,
@@ -28,7 +30,7 @@ enum class StackStatus : unsigned {
   kRuntimeError = 0x0000ff00,
   kAllocError = 0x00008000,
 
-  kSelfWarn = 0x000000ff,
+  kWarning = 0x000000ff,
   kWarnSelfCtorData = 0x000000f8,
   kWarnSelfCtorName = 0x00000080,
   kWarnSelfCtorType = 0x00000040,
