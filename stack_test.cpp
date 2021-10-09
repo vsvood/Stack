@@ -34,7 +34,7 @@ void CycleTest() {
   fprintf(log, "Dumping void stack 1\n");
   fflush(log);
   STACK_DUMP(stack1);
-  STACK_CTOR(stack1, Stack*);
+  STACK_CTOR(stack1, Stack*, 0);
   fprintf(log, "Dumping Ctored stack 1\n");
   fflush(log);
   STACK_DUMP(stack1);
@@ -50,7 +50,7 @@ void CycleTest() {
   fprintf(log, "Dumping void stack 2\n");
   fflush(log);
   STACK_DUMP(stack2);
-  STACK_CTOR(stack2, Stack*);
+  STACK_CTOR(stack2, Stack*, 0);
   fprintf(log, "Dumping Ctored stack 2\n");
   fflush(log);
   STACK_DUMP(stack2);
@@ -120,7 +120,7 @@ void SimpleTest() {
   fprintf(log, "Dumping void stack\n");
   fflush(log);
   STACK_DUMP(stack);
-  STACK_CTOR(stack, int);
+  STACK_CTOR(stack, int, 0);
   fprintf(log, "Dumping Ctored stack 1\n");
   fflush(log);
   STACK_DUMP(stack);

@@ -5,16 +5,6 @@
 #ifndef STACK_STACK_CONFIG_H
 #define STACK_STACK_CONFIG_H
 
-#define STACK_DUMP_NO          0
-#define STACK_DUMP_SELF_MIN    0x001
-#define STACK_DUMP_SELF_ALL    0x00f
-#define STACK_DUMP_MEMBERS_MIN 0x010
-#define STACK_DUMP_MEMBERS_MAX 0x0f0
-#define STACK_DUMP_ALL         0x0ff
-#define STACK_DUMP_EXTRA       0xfff
-
-#define STACK_DUMP_LEVEL STACK_DUMP_EXTRA
-
 #define STACK_LOG_PATH "./stack.log"
 
 #define STACK_SECURE_NO          0
