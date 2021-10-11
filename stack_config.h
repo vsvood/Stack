@@ -5,7 +5,7 @@
 #ifndef STACK_STACK_CONFIG_H
 #define STACK_STACK_CONFIG_H
 
-#define STACK_LOG_PATH "./stack.log"
+#define STACK_LOG_PATH "../stack.log"
 
 #define STACK_SECURE_NO          0
 #define STACK_SECURE_SELF_CANARY 0b0001

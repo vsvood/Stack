@@ -12,6 +12,7 @@ void CycleTest();
 void SimpleTest();
 
 void StackTest() {
+  printf("Output logged to stack.log");
   FILE* log = fopen(STACK_LOG_PATH, "w");
   fclose(log);
   SimpleTest();
