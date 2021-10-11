@@ -154,13 +154,13 @@ StackStatus Stack::Dump(const Stack *self, CtorInfo ctor_info, const char *inden
 
   self->is_dumping = true;
 
-  DumpHeader(self, ctor_info, indent, status);
-
   DumpSelfSecurity(indent, status);
 
   if ((status & StackStatus::kBadSelfSecurity) != StackStatus::kOk) {
     return status;
   }
+
+  DumpHeader(self, ctor_info, indent, status);
 
   DumpSelfInfo(self, indent, status);
 
