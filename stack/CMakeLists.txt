@@ -7,8 +7,7 @@ set(CXX_COVERAGE_COMPILE_FLAGS "-D NDEBUG -g -std=c++14 -Werror -fmax-errors=1 -
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_COVERAGE_COMPILE_FLAGS}" )
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(stack/include)
-add_subdirectory(stack)
+include_directories(include)
 
-add_executable(Test main.cpp)
-target_link_libraries(Test StackTest)
+add_library(Stack src/stack.cpp src/stack_status.cpp src/stack_utils.cpp)
+add_library(StackTest src/stack.cpp src/stack_status.cpp test/stack_test.cpp src/stack_utils.cpp)

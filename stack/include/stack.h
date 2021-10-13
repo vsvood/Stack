@@ -8,10 +8,10 @@
 #include <cstddef>
 #include <cstdio>
 
-#include "stack_status.h"
-#include "elem_interface.h"
-#include "alchemy_shop.h"
-#include "stack_config.h"
+#include "../src/stack_status.h"
+#include "../src/elem_interface.h"
+#include "../src/alchemy_shop.h"
+#include "../src/stack_config.h"
 
 struct CtorInfo {
     const char* name;

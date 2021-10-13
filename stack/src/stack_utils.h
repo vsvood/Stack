@@ -5,7 +5,7 @@
 #ifndef STACK_STACK_UTILS_H
 #define STACK_STACK_UTILS_H
 
-#include "stack.h"
+#include "../include/stack.h"
 
 // General utils
 

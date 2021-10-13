@@ -5,9 +5,7 @@
 #include "stack.h"
 
 #include <cstring>
-#include <cstdlib>
 
-#include "alchemy_shop.h"
 #include "stack_utils.h"
 
 FILE* Stack::log_file = fopen(STACK_LOG_PATH, "a");
